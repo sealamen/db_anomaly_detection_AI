@@ -1,0 +1,1 @@
+pip install pandas scikit-learn tensorflow numpy joblib h5py
