@@ -5,7 +5,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 import joblib
 
-df = pd.read_csv("./csv_files/train_anomaly.csv")
+df = pd.read_csv("./csv_files/normal_split.csv")
 df_numeric = df.select_dtypes(include=['float64','int64']).drop(columns=['time'], errors='ignore')
 
 normal_train, _ = train_test_split(df_numeric, test_size=0.1, random_state=42)
@@ -25,9 +25,14 @@ autoencoder = Model(input_layer, decoded)
 autoencoder.compile(optimizer='adam', loss='mse')
 autoencoder.fit(normal_scaled, normal_scaled, epochs=50, batch_size=32, verbose=0)
 
-# 저장 (모델은 h5, 스케일러는 따로 pkl)
+# Autoencoder + Scaler + 컬럼 정보 저장
+joblib.dump({
+    "scaler": scaler,
+    "feature_columns": df_numeric.columns.tolist()
+}, "../models/autoencoder_scaler_columns.pkl")
 
+
+# 저장 (모델은 h5, 스케일러는 따로 pkl)
 autoencoder.save("../models/autoencoder.h5")
-joblib.dump(scaler, "../models/autoencoder_scaler.pkl")
 print("✅ Autoencoder + Scaler 저장 완료")
 
