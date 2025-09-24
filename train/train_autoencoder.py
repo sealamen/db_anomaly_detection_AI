@@ -1,29 +1,40 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 import joblib
 
-df = pd.read_csv("./csv_files/normal_split.csv")
+df = pd.read_csv("./csv_files/normal.csv")
 df_numeric = df.select_dtypes(include=['float64','int64']).drop(columns=['time'], errors='ignore')
-
-normal_train, _ = train_test_split(df_numeric, test_size=0.1, random_state=42)
 
 # 스케일링
 scaler = StandardScaler()
-normal_scaled = scaler.fit_transform(normal_train)
+normal_scaled = scaler.fit_transform(df_numeric)
 
 # Autoencoder 정의
 input_dim = normal_scaled.shape[1]
 input_layer = Input(shape=(input_dim,))
-encoded = Dense(16, activation='relu')(input_layer)
-encoded = Dense(8, activation='relu')(encoded)
-decoded = Dense(input_dim, activation='linear')(encoded)
+
+# 인코더
+encoded = Dense(32, activation='relu')(input_layer)
+encoded = Dense(16, activation='relu')(encoded)
+encoded = Dense(8, activation='relu')(encoded)  # encoding_dim = 8
+
+# 디코더
+decoded = Dense(16, activation='relu')(encoded)
+decoded = Dense(32, activation='relu')(decoded)
+decoded = Dense(input_dim, activation='linear')(decoded)
 
 autoencoder = Model(input_layer, decoded)
 autoencoder.compile(optimizer='adam', loss='mse')
-autoencoder.fit(normal_scaled, normal_scaled, epochs=50, batch_size=32, verbose=0)
+
+# 학습
+autoencoder.fit(
+    normal_scaled, normal_scaled,
+    epochs=30,         # 최적 epochs
+    batch_size=16,     # 최적 batch_size
+    verbose=0
+)
 
 # Autoencoder + Scaler + 컬럼 정보 저장
 joblib.dump({
