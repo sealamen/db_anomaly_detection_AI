@@ -41,7 +41,7 @@ def batch_detect_and_evaluate(df, model_path):
     ae_scaled = ae_scaler.transform(df_numeric[ae_features])
     recon = autoencoder.predict(ae_scaled, verbose=0)
     mse = np.mean(np.square(ae_scaled - recon), axis=1)
-    recon_thresh = mse.mean() + 3 * mse.std()
+    recon_thresh = mse.mean() + 2 * mse.std()
     df_numeric["AE_Pred"] = (mse > recon_thresh).astype(int)
 
     # 4. 최종 Alert
@@ -94,7 +94,9 @@ def evaluate_model(y_true, y_pred, model_name="Model"):
 
 
 # 모델을 평가할 데이터 입력, ANOMALY_YN 컬럼이 포함되어야 평가 가능
-data_path = "C:\\OCI\\data\\anomaly_40000_default_2_percent.csv"
+data_path = "C:\\OCI\\data\\anomaly_40000_default_98_percent.csv"
+
+# 학습 모델들의 위치
 model_path = "C:\\OCI\\repository\\db_anomaly_detection_AI\\models\\"
 
 df_test = pd.read_csv(data_path)
