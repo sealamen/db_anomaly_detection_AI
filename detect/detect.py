@@ -1,1 +1,0 @@
-# main detect script
